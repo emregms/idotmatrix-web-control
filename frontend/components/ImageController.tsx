@@ -153,6 +153,9 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
 
     return (
         <div className={`flex flex-col gap-6 ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
+            {/* Helper Canvases - Always render them so refs are available */}
+            <canvas ref={processCanvasRef} width={32} height={32} className="hidden" />
+            <canvas ref={canvasRef} width={32} height={32} className="hidden" />
 
             {/* Input Area */}
             {!selectedFile ? (
@@ -237,10 +240,6 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                                 ))}
                             </div>
                         )}
-
-                        {/* Hidden helper canvases */}
-                        <canvas ref={processCanvasRef} width={32} height={32} className="hidden" />
-                        <canvas ref={canvasRef} width={32} height={32} className="hidden" />
                     </div>
 
                     <p className="text-slate-500 text-xs mt-3 mb-6">
