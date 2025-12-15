@@ -222,7 +222,12 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                         {/* Only render grid if we have data */}
                         {grid.length > 0 && (
                             <div
-                                className="grid grid-cols-[repeat(32,minmax(0,1fr))] gap-px bg-slate-800 border border-slate-800 cursor-crosshair touch-none select-none w-full max-w-[500px] aspect-square"
+                                style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(32, 1fr)",
+                                    gap: "1px",
+                                }}
+                                className="bg-slate-800 border border-slate-800 cursor-crosshair touch-none select-none w-full max-w-[500px] aspect-square mx-auto"
                             >
                                 {grid.map((row, r) => (
                                     row.map((color, c) => (
