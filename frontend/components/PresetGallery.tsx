@@ -1,35 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import { Grid, Cloud, Link as LinkIcon, Image as ImageIcon, Search, Loader2 } from "lucide-react";
+import { Grid, Cloud, Link as LinkIcon, Search, Loader2 } from "lucide-react";
 import { clsx } from "clsx";
 
-const PRESETS = [
-    { name: "Mario Run", url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3V4c2Z5ZmF4dW14Z3V4Z3V4Z3V4Z3V4Z3V4Z3V4Zy9sM3YzYzR3/giphy.gif" },
-    { name: "Pacman", url: "https://media.giphy.com/media/d9QiBcfem5Mh8o/giphy.gif" },
-    { name: "Nyan Cat", url: "https://media.giphy.com/media/sIIhZliB2McAo/giphy.gif" },
-    { name: "Invader", url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDZ4eHR5eHR5eHR5eHR5eHR5eHR5eHR5eHR5eHR5Zy9QZ2phUFM/giphy.gif" }, // Placeholder replacement
-    { name: "Ghost", url: "https://media.giphy.com/media/10xc8M0pZk1p96/giphy.gif" },
-    { name: "Fire", url: "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif" },
-    { name: "Heart", url: "https://media.giphy.com/media/l41lFj8afMrk7gGXu/giphy.gif" },
-    { name: "Slime", url: "https://media.giphy.com/media/3o7TKMt1VVNkHVyPaE/giphy.gif" },
-];
+// Using Giphy Public Beta Key (legacy, subject to rate limits but usually works for demos)
+const GIPHY_API_KEY = "dc6zaTOxFJmzC";
+const GIPHY_SEARCH_URL = "https://api.giphy.com/v1/gifs/search";
+const GIPHY_TRENDING_URL = "https://api.giphy.com/v1/gifs/trending";
+
+interface GiphyImage {
+    id: string;
+    title: string;
+    images: {
+        fixed_height_small: { url: string }; // Use small variant for preview
+        original: { url: string }; // Use original for upload
+    };
+}
 
 export default function PresetGallery({ isConnected }: { isConnected: boolean }) {
-    const [activeTab, setActiveTab] = useState<"presets" | "url">("presets");
+    const [activeTab, setActiveTab] = useState<"search" | "url">("search");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [gifs, setGifs] = useState<GiphyImage[]>([]);
+    const [loadingGifs, setLoadingGifs] = useState(false);
     const [customUrl, setCustomUrl] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState<string | null>(null); // ID or 'url'
     const [status, setStatus] = useState<string | null>(null);
 
-    const handleFetchAndSend = async (url: string) => {
+    // Initial load - Trending pixel art
+    useEffect(() => {
+        searchGiphy("pixel art");
+    }, []);
+
+    const searchGiphy = async (query: string) => {
+        setLoadingGifs(true);
+        try {
+            const url = query
+                ? `${GIPHY_SEARCH_URL}?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12&rating=g`
+                : `${GIPHY_TRENDING_URL}?api_key=${GIPHY_API_KEY}&limit=12&rating=g`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            setGifs(data.data || []);
+        } catch (e) {
+            console.error("Giphy fetch error:", e);
+        } finally {
+            setLoadingGifs(false);
+        }
+    };
+
+    const handleFetchAndSend = async (url: string, id: string = "url") => {
         if (!url) return;
-        setLoading(true);
+        setUploading(id);
         setStatus("İndiriliyor ve Gönderiliyor...");
         try {
             const res = await api.fetchUrl(url);
             if (res.status === "uploaded_from_url") {
-                setStatus("Başarıyla gönderildi!");
+                setStatus("Başarıyla gönderildi! 🎉");
             } else {
                 setStatus("Hata oluştu.");
             }
@@ -37,28 +65,28 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
             console.error(err);
             setStatus("Hata: Görsel işlenemedi.");
         } finally {
-            setLoading(false);
+            setUploading(null);
         }
     };
 
     return (
         <div className={`mt-8 space-y-6 ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
             <div className="flex items-center gap-2 mb-4">
-                <Grid className="w-6 h-6 text-purple-400" />
-                <h2 className="text-xl font-semibold">İçerik Galerisi</h2>
+                <Cloud className="w-6 h-6 text-blue-400" />
+                <h2 className="text-xl font-semibold">Giphy Galeri</h2>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 p-1 bg-slate-800 rounded-lg w-fit">
+            <div className="flex gap-2 p-1 bg-slate-800 rounded-lg w-fit mb-4">
                 <button
-                    onClick={() => setActiveTab("presets")}
+                    onClick={() => setActiveTab("search")}
                     className={clsx(
                         "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                        activeTab === "presets" ? "bg-slate-700 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                        activeTab === "search" ? "bg-slate-700 text-white shadow-sm" : "text-slate-400 hover:text-white"
                     )}
                 >
-                    <Cloud className="w-4 h-4" />
-                    Hazır Galeri
+                    <Search className="w-4 h-4" />
+                    GIF Ara
                 </button>
                 <button
                     onClick={() => setActiveTab("url")}
@@ -68,38 +96,71 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
                     )}
                 >
                     <LinkIcon className="w-4 h-4" />
-                    Web Linki (URL)
+                    Link İle Yükle
                 </button>
             </div>
 
-            {/* Content */}
             <div className="bg-slate-900/50 rounded-xl border border-slate-800 p-6 min-h-[300px]">
-                {activeTab === "presets" && (
-                    <div className="grid grid-cols-4 gap-4">
-                        {PRESETS.map((preset) => (
-                            <div
-                                key={preset.name}
-                                className="group relative bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 cursor-pointer transition-all hover:scale-105 active:scale-95"
-                                onClick={() => handleFetchAndSend(preset.url)}
-                            >
-                                <div className="aspect-square relative">
-                                    <img
-                                        src={preset.url}
-                                        alt={preset.name}
-                                        className="w-full h-full object-cover image-pixelated"
-                                        style={{ imageRendering: "pixelated" }}
-                                    />
-                                    {loading && status && !customUrl && ( // Simple check to show loading on active item could be better but ok for now
-                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                            <Loader2 className="w-6 h-6 text-white animate-spin" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-2 text-center text-xs font-medium text-slate-400 group-hover:text-white bg-slate-900/90 absolute bottom-0 w-full translate-y-full group-hover:translate-y-0 transition-transform">
-                                    {preset.name}
-                                </div>
+                {/* Status Message */}
+                {status && (
+                    <div className={clsx(
+                        "mb-4 p-3 rounded-lg text-center text-sm font-medium animate-pulse",
+                        status.includes("Hata") ? "bg-red-900/30 text-red-300 border border-red-800" : "bg-green-900/30 text-green-300 border border-green-800"
+                    )}>
+                        {status}
+                    </div>
+                )}
+
+                {activeTab === "search" && (
+                    <div className="space-y-4">
+                        <form
+                            onSubmit={(e) => { e.preventDefault(); searchGiphy(searchQuery); }}
+                            className="flex gap-2"
+                        >
+                            <input
+                                type="text"
+                                placeholder="Örn: mario, pacman, fire..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+                            />
+                            <button type="submit" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors">
+                                Ara
+                            </button>
+                        </form>
+
+                        {loadingGifs ? (
+                            <div className="flex justify-center py-10">
+                                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
                             </div>
-                        ))}
+                        ) : (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                {gifs.map((gif) => (
+                                    <div
+                                        key={gif.id}
+                                        className="group relative bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-blue-500 cursor-pointer aspect-square"
+                                        onClick={() => handleFetchAndSend(gif.images.original.url, gif.id)}
+                                    >
+                                        <img
+                                            src={gif.images.fixed_height_small.url}
+                                            alt={gif.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        {uploading === gif.id && (
+                                            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                                <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 text-[10px] text-white truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {gif.title || "GIF"}
+                                        </div>
+                                    </div>
+                                ))}
+                                {gifs.length === 0 && (
+                                    <p className="col-span-full text-center text-slate-500 py-4">Sonuç bulunamadı.</p>
+                                )}
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -118,34 +179,25 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
                         <div className="relative">
                             <input
                                 type="text"
-                                placeholder="https://media.giphy.com/..."
+                                placeholder="https://..."
                                 value={customUrl}
                                 onChange={(e) => {
                                     setCustomUrl(e.target.value);
                                     setStatus(null);
                                 }}
-                                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 transition-colors"
+                                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 pl-10 focus:outline-none focus:border-blue-500 transition-colors"
                             />
                             <LinkIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                         </div>
 
                         <button
-                            onClick={() => handleFetchAndSend(customUrl)}
-                            disabled={!customUrl || loading}
+                            onClick={() => handleFetchAndSend(customUrl, "url")}
+                            disabled={!customUrl || uploading === "url"}
                             className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-500 rounded-lg font-bold text-white flex items-center justify-center gap-2 transition-all"
                         >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                            {loading ? "İşleniyor..." : "Yükle ve Göster"}
+                            {uploading === "url" ? <Loader2 className="w-5 h-5 animate-spin" /> : <LinkIcon className="w-5 h-5" />}
+                            {uploading === "url" ? "İşleniyor..." : "Yükle ve Göster"}
                         </button>
-                    </div>
-                )}
-
-                {status && (
-                    <div className={clsx(
-                        "mt-4 p-3 rounded-lg text-center text-sm font-medium",
-                        status.includes("Hata") ? "bg-red-900/30 text-red-300 border border-red-800" : "bg-green-900/30 text-green-300 border border-green-800"
-                    )}>
-                        {status}
                     </div>
                 )}
             </div>

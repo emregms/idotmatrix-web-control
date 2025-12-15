@@ -11,7 +11,18 @@ Bu proje, iDotMatrix 32x32 LED ekranı için geliştirilmiş modern bir web aray
 - **URL Yükleme**: İnternetten herhangi bir görsel linki ile yükleme yapın.
 - **Python Backend**: Güçlü ve genişletilebilir FastAPI altyapısı.
 
-## Kurulum
+## Kurulum ve Başlatma
+
+### 🚀 Hızlı Başlat (Önerilen)
+Sizler için hazırladığımız **iDotMatrix Manager** aracı ile kurulum yapmadan (sanal ortam varsa) tek tıkla başlatabilirsiniz.
+
+- **Windows**: `run_windows.bat` dosyasına çift tıklayın.
+- **Mac/Linux**: Terminalde `./run_mac.sh` komutunu çalıştırın.
+
+Bu araç hem Backend hem Frontend sunucularını otomatik açar ve tarayıcıyı başlatır.
+
+### 🛠️ Manuel Kurulum
+Eğer geliştirme yapmak istiyorsanız:
 
 ### Backend
 ```bash

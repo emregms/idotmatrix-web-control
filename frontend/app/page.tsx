@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import DeviceScanner from "@/components/DeviceScanner";
 import ImageController from "@/components/ImageController";
 import PresetGallery from "@/components/PresetGallery";
+import CreativeStudio from "@/components/CreativeStudio";
 
 export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
@@ -35,6 +36,9 @@ export default function Home() {
           <ImageController isConnected={isConnected} />
           <div className="my-8 border-t border-slate-800" />
           <PresetGallery isConnected={isConnected} />
+
+          <div className="my-8 border-t border-slate-800" />
+          <CreativeStudio isConnected={isConnected} />
         </section>
 
         <footer className="text-center text-slate-600 text-xs py-8">
