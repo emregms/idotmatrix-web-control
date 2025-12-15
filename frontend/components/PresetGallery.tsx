@@ -1,203 +1,205 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api";
-import { Grid, Cloud, Link as LinkIcon, Search, Loader2 } from "lucide-react";
+import { Search, Image as ImageIcon, Loader2, Link as LinkIcon, DownloadCloud } from "lucide-react";
 import { clsx } from "clsx";
 
-// Using Giphy Public Beta Key (legacy, subject to rate limits but usually works for demos)
-const GIPHY_API_KEY = "dc6zaTOxFJmzC";
-const GIPHY_SEARCH_URL = "https://api.giphy.com/v1/gifs/search";
-const GIPHY_TRENDING_URL = "https://api.giphy.com/v1/gifs/trending";
-
-interface GiphyImage {
-    id: string;
-    title: string;
-    images: {
-        fixed_height_small: { url: string }; // Use small variant for preview
-        original: { url: string }; // Use original for upload
-    };
-}
+// Kurated 32x32 Pixel Art GIF List
+const PREMIUM_PRESETS = [
+    { title: "Mario Run", url: "https://media.giphy.com/media/l1KtXm1KDk0R0xGWc/giphy.gif" },
+    { title: "Pacman", url: "https://media.giphy.com/media/d9QiBcfemKDYKvCsVe/giphy.gif" },
+    { title: "Fire", url: "https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif" },
+    { title: "Matrix", url: "https://media.giphy.com/media/13Hgw4XvnZcSww/giphy.gif" },
+    { title: "Nyan Cat", url: "https://media.giphy.com/media/sIIhZliB2McAo/giphy.gif" },
+    { title: "Ghost", url: "https://media.giphy.com/media/10xcZX9qjC3m48/giphy.gif" },
+    { title: "Heart", url: "https://media.giphy.com/media/LpDmM2wSt6KfS/giphy.gif" },
+    { title: "Rain", url: "https://media.giphy.com/media/t7Qb8655Z1Nzq/giphy.gif" },
+    { title: "Cyberpunk", url: "https://media.giphy.com/media/fVPrnI9XUtdh6/giphy.gif" },
+    { title: "Sonic", url: "https://media.giphy.com/media/GULjPncSkMTS8/giphy.gif" },
+    { title: "Coffee", url: "https://media.giphy.com/media/3o7qDYXe0QuLCnwLlC/giphy.gif" },
+    { title: "City", url: "https://media.giphy.com/media/3ohhwk8r89y2V8Qy76/giphy.gif" },
+];
 
 export default function PresetGallery({ isConnected }: { isConnected: boolean }) {
-    const [activeTab, setActiveTab] = useState<"search" | "url">("search");
+    const [activeTab, setActiveTab] = useState<"presets" | "search" | "url">("presets");
     const [searchQuery, setSearchQuery] = useState("");
-    const [gifs, setGifs] = useState<GiphyImage[]>([]);
-    const [loadingGifs, setLoadingGifs] = useState(false);
-    const [customUrl, setCustomUrl] = useState("");
-    const [uploading, setUploading] = useState<string | null>(null); // ID or 'url'
-    const [status, setStatus] = useState<string | null>(null);
+    const [networkImages, setNetworkImages] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [urlInput, setUrlInput] = useState("");
+    const [sendingUrl, setSendingUrl] = useState(false);
 
-    // Initial load - Trending pixel art
-    useEffect(() => {
-        searchGiphy("pixel art");
-    }, []);
-
-    const searchGiphy = async (query: string) => {
-        setLoadingGifs(true);
+    const handleSendUrl = async (url: string) => {
+        if (!isConnected) return;
+        setSendingUrl(true);
         try {
-            const url = query
-                ? `${GIPHY_SEARCH_URL}?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(query)}&limit=12&rating=g`
-                : `${GIPHY_TRENDING_URL}?api_key=${GIPHY_API_KEY}&limit=12&rating=g`;
-
-            const res = await fetch(url);
-            const data = await res.json();
-            setGifs(data.data || []);
+            await api.fetchUrl(url);
         } catch (e) {
-            console.error("Giphy fetch error:", e);
+            console.error(e);
+            alert("Gönderim başarısız");
         } finally {
-            setLoadingGifs(false);
+            setSendingUrl(false);
         }
     };
 
-    const handleFetchAndSend = async (url: string, id: string = "url") => {
-        if (!url) return;
-        setUploading(id);
-        setStatus("İndiriliyor ve Gönderiliyor...");
+    const performSearch = async () => {
+        if (!searchQuery.trim()) return;
+        setLoading(true);
+        setNetworkImages([]);
+
         try {
-            const res = await api.fetchUrl(url);
-            if (res.status === "uploaded_from_url") {
-                setStatus("Başarıyla gönderildi! 🎉");
-            } else {
-                setStatus("Hata oluştu.");
-            }
-        } catch (err) {
-            console.error(err);
-            setStatus("Hata: Görsel işlenemedi.");
+            // Use our new backend proxy for DDG search
+            // Since we are adding it to backend, we fetch slightly differently,
+            // or we can implement a frontend fetch to backend
+            const res = await fetch(`http://localhost:8000/search?q=${encodeURIComponent(searchQuery)}`);
+            const data = await res.json();
+            setNetworkImages(data);
+        } catch (error) {
+            console.error("Search failed", error);
         } finally {
-            setUploading(null);
+            setLoading(false);
         }
     };
 
     return (
-        <div className={`mt-8 space-y-6 ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
-            <div className="flex items-center gap-2 mb-4">
-                <Cloud className="w-6 h-6 text-blue-400" />
-                <h2 className="text-xl font-semibold">Giphy Galeri</h2>
-            </div>
-
+        <div className={`space-y-6 ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
             {/* Tabs */}
-            <div className="flex gap-2 p-1 bg-slate-800 rounded-lg w-fit mb-4">
+            <div className="flex p-1 bg-slate-800 rounded-xl">
+                <button
+                    onClick={() => setActiveTab("presets")}
+                    className={clsx(
+                        "flex-1 py-2 rounded-lg font-medium transition-all",
+                        activeTab === "presets" ? "bg-slate-700 text-white shadow" : "text-slate-400 hover:text-white"
+                    )}
+                >
+                    Premium Galeri
+                </button>
                 <button
                     onClick={() => setActiveTab("search")}
                     className={clsx(
-                        "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                        activeTab === "search" ? "bg-slate-700 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                        "flex-1 py-2 rounded-lg font-medium transition-all",
+                        activeTab === "search" ? "bg-slate-700 text-white shadow" : "text-slate-400 hover:text-white"
                     )}
                 >
-                    <Search className="w-4 h-4" />
-                    GIF Ara
+                    İnternette Ara
                 </button>
                 <button
                     onClick={() => setActiveTab("url")}
                     className={clsx(
-                        "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                        activeTab === "url" ? "bg-slate-700 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                        "flex-1 py-2 rounded-lg font-medium transition-all",
+                        activeTab === "url" ? "bg-slate-700 text-white shadow" : "text-slate-400 hover:text-white"
                     )}
                 >
-                    <LinkIcon className="w-4 h-4" />
-                    Link İle Yükle
+                    Link Yükle
                 </button>
             </div>
 
-            <div className="bg-slate-900/50 rounded-xl border border-slate-800 p-6 min-h-[300px]">
-                {/* Status Message */}
-                {status && (
-                    <div className={clsx(
-                        "mb-4 p-3 rounded-lg text-center text-sm font-medium animate-pulse",
-                        status.includes("Hata") ? "bg-red-900/30 text-red-300 border border-red-800" : "bg-green-900/30 text-green-300 border border-green-800"
-                    )}>
-                        {status}
+            {/* Content */}
+            <div className="min-h-[400px]">
+                {activeTab === "presets" && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-in fade-in slide-in-from-bottom-2">
+                        {PREMIUM_PRESETS.map((preset, idx) => (
+                            <div
+                                key={idx}
+                                className="group relative bg-slate-800 rounded-xl overflow-hidden aspect-square border border-slate-700 hover:border-blue-500 transition-colors cursor-pointer"
+                                onClick={() => handleSendUrl(preset.url)}
+                            >
+                                <img
+                                    src={preset.url}
+                                    alt={preset.title}
+                                    className="w-full h-full object-cover image-pixelated"
+                                    style={{ imageRendering: "pixelated" }}
+                                    loading="lazy"
+                                />
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white p-2 text-center">
+                                    <span className="font-bold text-sm">{preset.title}</span>
+                                    <span className="text-xs text-blue-300 mt-1">Yükle</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 
                 {activeTab === "search" && (
-                    <div className="space-y-4">
-                        <form
-                            onSubmit={(e) => { e.preventDefault(); searchGiphy(searchQuery); }}
-                            className="flex gap-2"
-                        >
-                            <input
-                                type="text"
-                                placeholder="Örn: mario, pacman, fire..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
-                            />
-                            <button type="submit" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors">
-                                Ara
-                            </button>
-                        </form>
-
-                        {loadingGifs ? (
-                            <div className="flex justify-center py-10">
-                                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="Örn: Mario, Space, Coin..."
+                                    className="w-full bg-slate-800 border-slate-700 text-white pl-10 h-12 rounded-xl focus:ring-2 focus:ring-blue-500"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && performSearch()}
+                                />
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                {gifs.map((gif) => (
+                            <button
+                                onClick={performSearch}
+                                className="bg-blue-600 hover:bg-blue-500 px-6 rounded-xl font-bold text-white transition-colors"
+                                disabled={loading}
+                            >
+                                {loading ? <Loader2 className="animate-spin" /> : "Ara"}
+                            </button>
+                        </div>
+
+                        {networkImages.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {networkImages.map((img, idx) => (
                                     <div
-                                        key={gif.id}
-                                        className="group relative bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-blue-500 cursor-pointer aspect-square"
-                                        onClick={() => handleFetchAndSend(gif.images.original.url, gif.id)}
+                                        key={idx}
+                                        className="group relative bg-slate-800 rounded-xl overflow-hidden aspect-square border border-slate-700 hover:border-purple-500 transition-colors cursor-pointer"
+                                        onClick={() => handleSendUrl(img.url)}
                                     >
                                         <img
-                                            src={gif.images.fixed_height_small.url}
-                                            alt={gif.title}
+                                            src={img.thumbnail || img.url}
+                                            alt={img.title}
                                             className="w-full h-full object-cover"
+                                            loading="lazy"
                                         />
-                                        {uploading === gif.id && (
-                                            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                                                <Loader2 className="w-6 h-6 text-white animate-spin" />
-                                            </div>
-                                        )}
-                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1 text-[10px] text-white truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {gif.title || "GIF"}
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white p-2 text-center">
+                                            <DownloadCloud className="w-6 h-6 mb-1" />
+                                            <span className="text-xs">Cihaza Gönder</span>
                                         </div>
                                     </div>
                                 ))}
-                                {gifs.length === 0 && (
-                                    <p className="col-span-full text-center text-slate-500 py-4">Sonuç bulunamadı.</p>
-                                )}
                             </div>
+                        ) : (
+                            !loading && (
+                                <div className="text-center text-slate-500 py-12">
+                                    <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                                    <p>Sonuç yok veya arama yapılmadı.</p>
+                                    <p className="text-xs mt-2">Daha iyi sonuçlar için İngilizce terimler deneyin (örn: "8bit fire").</p>
+                                </div>
+                            )
                         )}
                     </div>
                 )}
 
                 {activeTab === "url" && (
-                    <div className="flex flex-col gap-4 max-w-md mx-auto py-8">
-                        <div className="text-center space-y-2 mb-4">
-                            <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                                <LinkIcon className="w-6 h-6 text-blue-400" />
+                    <div className="max-w-xl mx-auto py-12 animate-in fade-in slide-in-from-bottom-2">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="https://..."
+                                    className="w-full bg-slate-800 border-slate-700 text-white pl-10 h-12 rounded-xl focus:ring-2 focus:ring-green-500"
+                                    value={urlInput}
+                                    onChange={(e) => setUrlInput(e.target.value)}
+                                />
                             </div>
-                            <h3 className="text-lg font-medium">Bağlantıdan Yükle</h3>
-                            <p className="text-sm text-slate-400">
-                                İnternetteki herhangi bir görselin veya GIF'in bağlantısını yapıştırın.
-                            </p>
                         </div>
-
-                        <div className="relative">
-                            <input
-                                type="text"
-                                placeholder="https://..."
-                                value={customUrl}
-                                onChange={(e) => {
-                                    setCustomUrl(e.target.value);
-                                    setStatus(null);
-                                }}
-                                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 pl-10 focus:outline-none focus:border-blue-500 transition-colors"
-                            />
-                            <LinkIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
-                        </div>
-
                         <button
-                            onClick={() => handleFetchAndSend(customUrl, "url")}
-                            disabled={!customUrl || uploading === "url"}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-800 disabled:text-slate-500 rounded-lg font-bold text-white flex items-center justify-center gap-2 transition-all"
+                            onClick={() => handleSendUrl(urlInput)}
+                            disabled={!urlInput || sendingUrl}
+                            className="w-full mt-4 bg-green-600 hover:bg-green-500 disabled:bg-slate-700 h-12 rounded-xl font-bold text-white transition-colors"
                         >
-                            {uploading === "url" ? <Loader2 className="w-5 h-5 animate-spin" /> : <LinkIcon className="w-5 h-5" />}
-                            {uploading === "url" ? "İşleniyor..." : "Yükle ve Göster"}
+                            {sendingUrl ? "İndiriliyor ve Gönderiliyor..." : "Linkteki Görseli Ekrana Yansıt"}
                         </button>
+                        <p className="text-slate-500 text-xs text-center mt-4">
+                            Statik resimler veya GIF linkleri desteklenir.
+                        </p>
                     </div>
                 )}
             </div>
