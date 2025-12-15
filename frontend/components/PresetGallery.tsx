@@ -45,7 +45,7 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
     const performSearch = async () => {
         if (!searchQuery.trim()) return;
         setLoading(true);
-        setNetworkImages([]);
+        setSearchResults([]);
 
         try {
             // Use our new backend proxy for DDG search
@@ -53,7 +53,7 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
             // or we can implement a frontend fetch to backend
             const res = await fetch(`http://localhost:8000/search?q=${encodeURIComponent(searchQuery)}`);
             const data = await res.json();
-            setNetworkImages(data);
+            setSearchResults(data);
         } catch (error) {
             console.error("Search failed", error);
         } finally {
@@ -109,9 +109,9 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
                         </button>
                     </div>
 
-                    {networkImages.length > 0 ? (
+                    {searchResults.length > 0 ? (
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {networkImages.map((img, idx) => (
+                            {searchResults.map((img, idx) => (
                                 <div
                                     key={idx}
                                     className="group relative bg-slate-800 rounded-xl overflow-hidden aspect-square border border-slate-700 hover:border-purple-500 transition-colors cursor-pointer"
@@ -169,6 +169,6 @@ export default function PresetGallery({ isConnected }: { isConnected: boolean })
                 </div>
             )}
         </div>
-        </div >
+
     );
 }
