@@ -12,42 +12,63 @@ import {
   Settings,
   Menu,
   X,
-  Bluetooth
+  Bluetooth,
+  Upload
 } from "lucide-react";
 import { clsx } from "clsx";
 
 export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "gallery" | "studio">("dashboard");
+  // Default tab is 'connect'
+  const [activeTab, setActiveTab] = useState<"connect" | "upload" | "gallery" | "studio">("connect");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleConnectSuccess = () => {
+    setIsConnected(true);
+    // Auto redirect to upload tab
+    setActiveTab("upload");
+  };
 
   const renderContent = () => {
     switch (activeTab) {
-      case "dashboard":
+      case "connect":
         return (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Bluetooth className="w-5 h-5 text-blue-400" />
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto">
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-8 shadow-xl">
+              <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3">
+                <Bluetooth className="w-8 h-8 text-blue-400" />
                 Cihaz Bağlantısı
               </h2>
-              <DeviceScanner onConnect={() => setIsConnected(true)} isConnected={isConnected} />
+              <p className="text-slate-400 mb-8">
+                Başlamak için iDotMatrix cihazınızı tarayın ve bağlanın. Bağlantı kurulduğunda otomatik olarak kontrol paneline yönlendirileceksiniz.
+              </p>
+              <DeviceScanner onConnect={handleConnectSuccess} isConnected={isConnected} />
             </div>
-
-            <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl relative overflow-hidden">
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-purple-400" />
-                Hızlı Yükleme
-              </h2>
-              {!isConnected && (
-                <div className="absolute inset-0 z-10 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center">
-                  <p className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 shadow-lg">
-                    Cihaz bağlı değil
-                  </p>
+          </div>
+        );
+      case "upload":
+        return (
+          <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Upload className="w-5 h-5 text-purple-400" />
+              Görsel Yükleme & Düzenleme
+            </h2>
+            {!isConnected && (
+              <div className="absolute inset-0 z-10 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center p-6 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-w-md">
+                  <Bluetooth className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-white mb-2">Cihaz Bağlı Değil</h3>
+                  <p className="text-slate-400 mb-4">Görsel yüklemek için önce cihaz bağlantısını sağlamalısınız.</p>
+                  <button
+                    onClick={() => setActiveTab("connect")}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors"
+                  >
+                    Bağlantı Ekranına Git
+                  </button>
                 </div>
-              )}
-              <ImageController isConnected={isConnected} />
-            </div>
+              </div>
+            )}
+            <ImageController isConnected={isConnected} />
           </div>
         );
       case "gallery":
@@ -121,11 +142,14 @@ export default function Home() {
           <h1 className="text-2xl font-black bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
             iDotMatrix
           </h1>
-          <p className="text-xs text-slate-500 mt-1 font-mono">Control Center v1.0</p>
+          <p className="text-xs text-slate-500 mt-1 font-mono">Control Center v1.1</p>
         </div>
 
         <nav className="flex-1 space-y-2">
-          <NavItem id="dashboard" icon={LayoutDashboard} label="Kontrol Merkezi" />
+          <div className="pb-4 mb-4 border-b border-slate-800">
+            <NavItem id="connect" icon={Bluetooth} label="Bağlantı" />
+          </div>
+          <NavItem id="upload" icon={Upload} label="Resim Yükle" />
           <NavItem id="gallery" icon={ImageIcon} label="Galeri & GIF" />
           <NavItem id="studio" icon={Palette} label="Yaratıcı Stüdyo" />
         </nav>
@@ -149,12 +173,14 @@ export default function Home() {
       <div className="flex-1 p-4 md:p-8 md:pt-12 max-w-7xl mx-auto w-full">
         <header className="mb-8 hidden md:block">
           <h2 className="text-3xl font-bold text-white">
-            {activeTab === "dashboard" && "Kontrol Merkezi"}
+            {activeTab === "connect" && "Bağlantı Merkezi"}
+            {activeTab === "upload" && "Resim Yükleme"}
             {activeTab === "gallery" && "İçerik Galerisi"}
             {activeTab === "studio" && "Yaratıcı Stüdyo"}
           </h2>
           <p className="text-slate-400 mt-1">
-            {activeTab === "dashboard" && "Cihaz bağlantısını yönet ve hızlı yükleme yap."}
+            {activeTab === "connect" && "Cihazınızı bulun ve eşleştirin."}
+            {activeTab === "upload" && "Kendi görsellerinizi yükleyin, düzenleyin ve gönderin."}
             {activeTab === "gallery" && "Popüler GIF'leri keşfet veya link ile yükle."}
             {activeTab === "studio" && "Kendi piksel sanatını veya emojini oluştur."}
           </p>

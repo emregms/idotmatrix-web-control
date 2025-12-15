@@ -118,13 +118,13 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
             <div className="flex flex-col md:flex-row gap-6 items-start">
                 {/* Grid Canvas */}
                 <div
-                    className="flex flex-col items-center bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-2xl"
+                    className="flex flex-col items-center bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-2xl w-full max-w-[650px]" // Container max width increased
                     onPointerLeave={() => setIsDrawing(false)}
                     onPointerUp={() => setIsDrawing(false)}
                 >
                     <div
-                        className="grid grid-cols-[repeat(32,minmax(0,1fr))] gap-px bg-slate-800 border border-slate-800 cursor-crosshair touch-none select-none"
-                        style={{ width: "320px", height: "320px" }} // Scaled up 10x
+                        className="grid grid-cols-[repeat(32,minmax(0,1fr))] gap-px bg-slate-800 border border-slate-800 cursor-crosshair touch-none select-none w-full aspect-square" // Responsive width and aspect ratio
+                    // Removed hardcoded width/height style to allow CSS to control size
                     >
                         {grid.map((row, r) => (
                             row.map((color, c) => (
