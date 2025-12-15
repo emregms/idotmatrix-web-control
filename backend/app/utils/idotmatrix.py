@@ -157,6 +157,12 @@ class IDotMatrix:
         packet = bytearray.fromhex("05 00 04 80 50")
         self._write_packet(packet)
 
+    def set_mode_clock(self):
+        # Based on common behavior, resetting usually brings back the default clock/animation loop
+        # Or specifically sending time might trigger it. 
+        # Let's try sending the reset command which seems to be "Mode Switch" or "Reset to Default"
+        self.send_reset_command()
+
     def convert_image_to_32x32(self, image_path_or_file):
         from PIL import ImageSequence, ImageOps
         with Image.open(image_path_or_file) as img:
@@ -211,6 +217,12 @@ class IDotMatrix:
                 
                 new_img.save(out_io, format='GIF')
             
+            
             return out_io.getvalue()
+
+    def get_connection_status(self):
+        if self.peripheral and self.is_connected:
+            return {"connected": True, "name": self.peripheral.identifier(), "address": self.peripheral.address()}
+        return {"connected": False, "name": None, "address": None}
 
 controller = IDotMatrix()

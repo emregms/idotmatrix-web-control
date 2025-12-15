@@ -47,6 +47,14 @@ def disconnect_device():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/status")
+def device_status():
+    try:
+        return controller.get_connection_status()
+    except Exception as e:
+        # If any error, assume disconnected
+        return {"connected": False}
+
 @app.post("/fetch-url")
 def fetch_url_and_send(data: dict):
     url = data.get("url")
@@ -140,6 +148,15 @@ def sync_device_time():
     try:
         controller.sync_time()
         return {"status": "time_synced"}
+    except Exception as e:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/clock-mode")
+def set_clock_mode():
+    try:
+        controller.set_mode_clock()
+        return {"status": "mode_set_to_clock"}
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

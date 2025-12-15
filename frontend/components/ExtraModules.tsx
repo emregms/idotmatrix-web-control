@@ -83,6 +83,15 @@ export function ClockManager({ isConnected }: { isConnected: boolean }) {
         }
     };
 
+    const handleClockMode = async () => {
+        try {
+            await api.setClockMode();
+        } catch (e) {
+            console.error(e);
+            alert("Mod değiştirilemedi.");
+        }
+    };
+
     return (
         <div className={`bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
@@ -90,19 +99,34 @@ export function ClockManager({ isConnected }: { isConnected: boolean }) {
                 Saat ve Zaman
             </h2>
 
-            <div className="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <div>
-                    <h3 className="text-white font-medium">Bozulmuş Saati Düzelt</h3>
-                    <p className="text-slate-400 text-xs mt-1">Cihazın saati yanlışsa, bilgisayar saatiyle eşitleyin.</p>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <div>
+                        <h3 className="text-white font-medium">Bozulmuş Saati Düzelt</h3>
+                        <p className="text-slate-400 text-xs mt-1">Cihazın saati yanlışsa, bilgisayar saatiyle eşitleyin.</p>
+                    </div>
+                    <button
+                        onClick={handleSync}
+                        disabled={syncing}
+                        className="bg-slate-700 hover:bg-slate-600 text-white p-3 rounded-lg transition-colors border border-slate-600"
+                        title="Şimdi Eşitle"
+                    >
+                        <RefreshCw className={`w-5 h-5 ${syncing ? "animate-spin" : ""}`} />
+                    </button>
                 </div>
-                <button
-                    onClick={handleSync}
-                    disabled={syncing}
-                    className="bg-slate-700 hover:bg-slate-600 text-white p-3 rounded-lg transition-colors border border-slate-600"
-                    title="Şimdi Eşitle"
-                >
-                    <RefreshCw className={`w-5 h-5 ${syncing ? "animate-spin" : ""}`} />
-                </button>
+
+                <div className="flex items-center justify-between bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <div>
+                        <h3 className="text-white font-medium">Saat Moduna Dön</h3>
+                        <p className="text-slate-400 text-xs mt-1">Ekranda saatin görünmesi için varsayılan moda döner.</p>
+                    </div>
+                    <button
+                        onClick={handleClockMode}
+                        className="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-lg transition-colors font-medium text-sm"
+                    >
+                        Aktif Et
+                    </button>
+                </div>
             </div>
         </div>
     );

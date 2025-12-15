@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 import DeviceScanner from "@/components/DeviceScanner";
 import ImageController from "@/components/ImageController";
 import { TextScroller, ClockManager } from "@/components/ExtraModules";
@@ -22,6 +23,24 @@ export default function Home() {
   // Default tab is 'connect'
   const [activeTab, setActiveTab] = useState<"connect" | "upload" | "gallery" | "studio" | "tools">("connect");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Check connection status on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const status = await api.getStatus();
+        if (status.connected) {
+          setIsConnected(true);
+          // If already connected, we can stay on current tab or go to upload.
+          // For now, let's go to upload if we are on connect tab
+          setActiveTab(prev => prev === "connect" ? "upload" : prev);
+        }
+      } catch (e) {
+        console.error("Failed to check status", e);
+      }
+    };
+    checkStatus();
+  }, []);
 
   const handleConnectSuccess = () => {
     setIsConnected(true);

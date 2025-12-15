@@ -35,6 +35,10 @@ export const api = {
     });
     return res.json();
   },
+  getStatus: async () => {
+    const res = await fetch(`${API_URL}/status`);
+    return res.json();
+  },
   sendText: async (data: { text: string; color: string }) => {
     const res = await fetch(`${API_URL}/text`, {
       method: "POST",
@@ -45,6 +49,10 @@ export const api = {
   },
   syncTime: async () => {
     const res = await fetch(`${API_URL}/sync-time`, { method: "POST" });
+    return res.json();
+  },
+  setClockMode: async () => {
+    const res = await fetch(`${API_URL}/clock-mode`, { method: "POST" });
     return res.json();
   },
 };
