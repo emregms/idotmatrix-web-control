@@ -114,7 +114,7 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
     const handleUpload = async () => {
         if (!grid.length) return;
         setUploading(true);
-        setStatus("Gönderiliyor...");
+        setStatus("Cihaza gönderiliyor...");
 
         try {
             // Convert grid back to image
@@ -135,11 +135,18 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
             if (!blob) throw new Error("Canvas error");
 
             const file = new File([blob], "edited_upload.png", { type: "image/png" });
-            await api.upload(file);
-            setStatus("Başarıyla gönderildi!");
+            const result = await api.upload(file);
+
+            if (result.status === "uploaded") {
+                setStatus("✅ Başarıyla gönderildi!");
+                // Clear status after 3 seconds
+                setTimeout(() => setStatus(null), 3000);
+            } else {
+                throw new Error("Upload failed");
+            }
         } catch (err) {
             console.error(err);
-            setStatus("Gönderim hatası.");
+            setStatus("❌ Gönderim hatası!");
         } finally {
             setUploading(false);
         }
@@ -153,9 +160,21 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
 
     return (
         <div className={`flex flex-col gap-6 ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
-            {/* Helper Canvases - Always render them so refs are available */}
-            <canvas ref={processCanvasRef} width={32} height={32} className="hidden" />
-            <canvas ref={canvasRef} width={32} height={32} className="hidden" />
+            {/* Helper Canvases - Using absolute/opacity instead of hidden to ensure context availability */}
+            <canvas
+                ref={processCanvasRef}
+                width={32}
+                height={32}
+                className="absolute opacity-0 pointer-events-none -z-50"
+                style={{ top: -9999, left: -9999 }}
+            />
+            <canvas
+                ref={canvasRef}
+                width={32}
+                height={32}
+                className="absolute opacity-0 pointer-events-none -z-50"
+                style={{ top: -9999, left: -9999 }}
+            />
 
             {/* Input Area */}
             {!selectedFile ? (
@@ -225,15 +244,16 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                                 style={{
                                     display: "grid",
                                     gridTemplateColumns: "repeat(32, 1fr)",
-                                    gap: "1px",
+                                    gap: "0px", // Removed gap for cleaner look
+                                    width: "320px", // Fixed width for better consistency
+                                    height: "320px"
                                 }}
-                                className="bg-slate-800 border border-slate-800 cursor-crosshair touch-none select-none w-full max-w-[500px] aspect-square mx-auto"
+                                className="bg-slate-950 border border-slate-800 cursor-crosshair touch-none select-none mx-auto"
                             >
                                 {grid.map((row, r) => (
                                     row.map((color, c) => (
                                         <div
                                             key={`${r}-${c}`}
-                                            className="w-full h-full"
                                             style={{ backgroundColor: color }}
                                             onPointerDown={(e) => {
                                                 e.preventDefault();
@@ -243,6 +263,14 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                                         />
                                     ))
                                 ))}
+                            </div>
+                        )}
+
+                        {/* Empty State / Loading State if grid is empty but file is selected */}
+                        {grid.length === 0 && (
+                            <div className="w-[320px] h-[320px] flex items-center justify-center text-slate-500">
+                                <div className="animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mb-2"></div>
+                                <span className="ml-2">İşleniyor...</span>
                             </div>
                         )}
                     </div>
@@ -267,8 +295,10 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
 
                         {status && (
                             <div className={clsx(
-                                "p-3 rounded-lg text-center text-sm font-medium animate-in fade-in slide-in-from-top-2",
-                                status.includes("hata") ? "bg-red-500/10 text-red-400" : "bg-green-500/10 text-green-400"
+                                "p-3 rounded-lg text-center text-sm font-bold animate-in fade-in slide-in-from-top-2 border",
+                                status.includes("hatası")
+                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                    : "bg-green-500/10 text-green-400 border-green-500/20"
                             )}>
                                 {status}
                             </div>

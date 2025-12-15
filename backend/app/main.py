@@ -104,10 +104,10 @@ async def search_images(q: str):
     try:
         search_query = f"{q} pixel art"
         with DDGS() as ddgs:
-            # Get up to 20 results
+            # Get up to 50 results
             ddgs_images = list(ddgs.images(
                 search_query, 
-                max_results=20,
+                max_results=50,
                 type_image="gif"
             ))
             for img in ddgs_images:
