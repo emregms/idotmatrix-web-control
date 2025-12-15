@@ -42,7 +42,7 @@ export default function Home() {
         </section>
 
         <footer className="text-center text-slate-600 text-xs py-8">
-          Geliştirici: Antigravity • Backend: Python • Frontend: Next.js
+          Geliştirici: <a href="https://hegg.tr" target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">hegg.tr</a> • Backend: Python • Frontend: Next.js
         </footer>
       </div>
     </main>
