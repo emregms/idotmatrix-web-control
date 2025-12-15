@@ -3,8 +3,7 @@
 import { useState } from "react";
 import DeviceScanner from "@/components/DeviceScanner";
 import ImageController from "@/components/ImageController";
-import PresetGallery from "@/components/PresetGallery";
-import CreativeStudio from "@/components/CreativeStudio";
+import { TextScroller, ClockManager } from "@/components/ExtraModules";
 import {
   LayoutDashboard,
   Image as ImageIcon,
@@ -13,14 +12,15 @@ import {
   Menu,
   X,
   Bluetooth,
-  Upload
+  Upload,
+  Wrench // Tools icon
 } from "lucide-react";
 import { clsx } from "clsx";
 
 export default function Home() {
   const [isConnected, setIsConnected] = useState(false);
   // Default tab is 'connect'
-  const [activeTab, setActiveTab] = useState<"connect" | "upload" | "gallery" | "studio">("connect");
+  const [activeTab, setActiveTab] = useState<"connect" | "upload" | "gallery" | "studio" | "tools">("connect");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleConnectSuccess = () => {
@@ -97,6 +97,18 @@ export default function Home() {
             <CreativeStudio isConnected={isConnected} />
           </div>
         );
+      case "tools":
+        return (
+          <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {!isConnected && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-yellow-200 text-center mb-6">
+                ⚠️ Cihaz bağlı değilken bu araçlar çalışmaz.
+              </div>
+            )}
+            <TextScroller isConnected={isConnected} />
+            <ClockManager isConnected={isConnected} />
+          </div>
+        );
       default:
         return null;
     }
@@ -152,6 +164,9 @@ export default function Home() {
           <NavItem id="upload" icon={Upload} label="Resim Yükle" />
           <NavItem id="gallery" icon={ImageIcon} label="Galeri & GIF" />
           <NavItem id="studio" icon={Palette} label="Yaratıcı Stüdyo" />
+          <div className="pt-4 mt-4 border-t border-slate-800">
+            <NavItem id="tools" icon={Wrench} label="Araçlar" />
+          </div>
         </nav>
 
         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-800">
@@ -177,12 +192,14 @@ export default function Home() {
             {activeTab === "upload" && "Resim Yükleme"}
             {activeTab === "gallery" && "İçerik Galerisi"}
             {activeTab === "studio" && "Yaratıcı Stüdyo"}
+            {activeTab === "tools" && "Araç Kutusu"}
           </h2>
           <p className="text-slate-400 mt-1">
             {activeTab === "connect" && "Cihazınızı bulun ve eşleştirin."}
             {activeTab === "upload" && "Kendi görsellerinizi yükleyin, düzenleyin ve gönderin."}
             {activeTab === "gallery" && "Popüler GIF'leri keşfet veya link ile yükle."}
             {activeTab === "studio" && "Kendi piksel sanatını veya emojini oluştur."}
+            {activeTab === "tools" && "Kayan yazı ve saat ayarı gibi ekstra özellikler."}
           </p>
         </header>
 

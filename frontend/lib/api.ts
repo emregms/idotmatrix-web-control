@@ -35,4 +35,16 @@ export const api = {
     });
     return res.json();
   },
+  sendText: async (data: { text: string; color: string }) => {
+    const res = await fetch(`${API_URL}/text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+  syncTime: async () => {
+    const res = await fetch(`${API_URL}/sync-time`, { method: "POST" });
+    return res.json();
+  },
 };
