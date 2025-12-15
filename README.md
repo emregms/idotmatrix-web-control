@@ -1,4 +1,10 @@
-# iDotMatrix Web Kontrol
+# iDotMatrix Kontrol Merkezi 🎨
+
+<div align="center">
+
+[![TR](https://img.shields.io/badge/lang-TR-red.svg)](README.md)
+[![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README_EN.md)
+</div>
 
 Bu proje, iDotMatrix 32x32 LED ekranı için geliştirilmiş modern bir web arayüzüdür. Bluetooth üzerinden cihazla iletişim kurarak görsel, GIF ve animasyon yüklemenizi sağlar.
 

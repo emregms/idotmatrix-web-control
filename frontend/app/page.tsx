@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { api } from "@/lib/api";
 import DeviceScanner from "@/components/DeviceScanner";
 import ImageController from "@/components/ImageController";
+import PresetGallery from "@/components/PresetGallery";
+import CreativeStudio from "@/components/CreativeStudio";
 import { TextScroller, ClockManager } from "@/components/ExtraModules";
 import {
   LayoutDashboard,
