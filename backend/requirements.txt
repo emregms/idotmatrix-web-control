@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+# simplepyble # Using simplepyble as per original script, but might need manual install or specific version on windows
+# For now let's try to install it, if it fails we might need to rely on system pre-reqs or switch to 'bleak'
+simplepyble
+pillow
+python-multipart
+numpy
