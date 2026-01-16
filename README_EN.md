@@ -1,11 +1,11 @@
 <div align="center">
-  
+
+[![TR](https://img.shields.io/badge/lang-TR-red.svg)](README.md)
+[![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README_EN.md)
+
 # 🎮 iDotMatrix Web Control
 
 ### Control Your Bluetooth LED Display from the Web
-
-[![TR](https://img.shields.io/badge/🇹🇷_Türkçe-Tıkla-red?style=for-the-badge)](README.md)
-[![EN](https://img.shields.io/badge/🇬🇧_English-Selected-blue?style=for-the-badge)](README_EN.md)
 
 **Modern, user-friendly web interface for your iDotMatrix 32x32 LED display.**
 
@@ -55,33 +55,15 @@ It uses a modern architecture with Python backend and Next.js frontend. Works on
 
 ## 📸 Screenshots
 
-<details open>
-<summary><b>🔌 Device Connection</b></summary>
-<br/>
-<img src="images/connection_screenshot.png" alt="Device Connection" width="100%"/>
-<p><i>Bluetooth devices are automatically scanned. Select your device from the list and connect with one click.</i></p>
-</details>
+|              🔌 Device Connection               |                📤 Image Upload                |
+| :---------------------------------------------: | :-------------------------------------------: |
+| ![Connection](images/connection_screenshot.png) | ![Upload](images/upload_image_screenshot.png) |
+|       Scan and connect Bluetooth devices        |          Upload and edit your images          |
 
-<details>
-<summary><b>📤 Image Upload</b></summary>
-<br/>
-<img src="images/upload_image_screenshot.png" alt="Image Upload" width="100%"/>
-<p><i>Upload PNG, JPG, or GIF files. Automatically converted to 32x32 pixels. Use the eraser tool to clean unwanted pixels.</i></p>
-</details>
-
-<details>
-<summary><b>🎬 Gallery & GIF Search</b></summary>
-<br/>
-<img src="images/gallery-gif_screenshot.png" alt="Gallery and GIF" width="100%"/>
-<p><i>Search for GIFs online or paste any image link to upload directly to your device.</i></p>
-</details>
-
-<details>
-<summary><b>🛠️ Toolbox</b></summary>
-<br/>
-<img src="images/toolbox_screenshot.png" alt="Toolbox" width="100%"/>
-<p><i>Send scrolling text, sync device time, or return to clock mode.</i></p>
-</details>
+|               🎬 Gallery & GIF                |               🛠️ Toolbox                |
+| :-------------------------------------------: | :-------------------------------------: |
+| ![Gallery](images/gallery-gif_screenshot.png) | ![Tools](images/toolbox_screenshot.png) |
+|      Search GIFs online or paste a link       |    Scrolling text and clock settings    |
 
 ---
 

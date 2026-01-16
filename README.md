@@ -1,11 +1,11 @@
 <div align="center">
-  
+
+[![TR](https://img.shields.io/badge/lang-TR-red.svg)](README.md)
+[![EN](https://img.shields.io/badge/lang-EN-blue.svg)](README_EN.md)
+
 # 🎮 iDotMatrix Web Control
 
 ### Bluetooth LED Ekranınızı Web'den Kontrol Edin
-
-[![TR](https://img.shields.io/badge/🇹🇷_Türkçe-Seçili-red?style=for-the-badge)](README.md)
-[![EN](https://img.shields.io/badge/🇬🇧_English-Click-blue?style=for-the-badge)](README_EN.md)
 
 **iDotMatrix 32x32 LED ekranınız için modern, kullanıcı dostu web arayüzü.**
 
@@ -55,33 +55,15 @@ Python backend ve Next.js frontend ile modern bir mimari kullanır. Hem Windows 
 
 ## 📸 Ekran Görüntüleri
 
-<details open>
-<summary><b>🔌 Cihaz Bağlantısı</b></summary>
-<br/>
-<img src="images/connection_screenshot.png" alt="Cihaz Bağlantısı" width="100%"/>
-<p><i>Bluetooth cihazları otomatik taranır. Listeden cihazınızı seçip tek tıkla bağlanın.</i></p>
-</details>
+|              🔌 Cihaz Bağlantısı              |               📤 Görsel Yükleme                |
+| :-------------------------------------------: | :--------------------------------------------: |
+| ![Bağlantı](images/connection_screenshot.png) | ![Yükleme](images/upload_image_screenshot.png) |
+|    Bluetooth cihazları tarayın ve bağlanın    |     Görsellerinizi yükleyin ve düzenleyin      |
 
-<details>
-<summary><b>📤 Görsel Yükleme</b></summary>
-<br/>
-<img src="images/upload_image_screenshot.png" alt="Görsel Yükleme" width="100%"/>
-<p><i>PNG, JPG veya GIF dosyalarını yükleyin. Otomatik olarak 32x32 piksele dönüştürülür. Silgi aracıyla istenmeyen pikselleri temizleyebilirsiniz.</i></p>
-</details>
-
-<details>
-<summary><b>🎬 Galeri & GIF Arama</b></summary>
-<br/>
-<img src="images/gallery-gif_screenshot.png" alt="Galeri ve GIF" width="100%"/>
-<p><i>İnternette GIF arayın veya herhangi bir resim linkini yapıştırarak doğrudan cihaza yükleyin.</i></p>
-</details>
-
-<details>
-<summary><b>🛠️ Araç Kutusu</b></summary>
-<br/>
-<img src="images/toolbox_screenshot.png" alt="Araç Kutusu" width="100%"/>
-<p><i>Kayan yazı gönderin, cihaz saatini senkronize edin veya saat moduna dönün.</i></p>
-</details>
+|               🎬 Galeri & GIF                |              🛠️ Araç Kutusu               |
+| :------------------------------------------: | :---------------------------------------: |
+| ![Galeri](images/gallery-gif_screenshot.png) | ![Araçlar](images/toolbox_screenshot.png) |
+|  İnternette GIF arayın veya link yapıştırın  |        Kayan yazı ve saat ayarları        |
 
 ---
 
