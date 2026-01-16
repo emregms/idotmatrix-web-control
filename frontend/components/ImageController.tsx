@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { api } from "@/lib/api";
-import { Upload, Image as ImageIcon, Send, Eraser, Pencil, Trash2, RefreshCcw } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { Upload, Send, Eraser, Pencil, Trash2 } from "lucide-react";
 import { clsx } from "clsx";
 
 export default function ImageController({ isConnected }: { isConnected: boolean }) {
+    const { t } = useI18n();
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [grid, setGrid] = useState<string[][]>([]); // 32x32 grid
     const [tool, setTool] = useState<"pencil" | "eraser">("eraser"); // Default to eraser for cleanup
@@ -17,19 +19,6 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
     const canvasRef = useRef<HTMLCanvasElement>(null); // For final export
     const processCanvasRef = useRef<HTMLCanvasElement>(null); // For image processing
 
-    // Helper to convert hex to rgba for canvas
-    const hexToRgb = (hex: string) => {
-        // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-        const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-        hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        } : null;
-    }
-
     const processImageToGrid = (file: File) => {
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -38,14 +27,9 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                 const ctx = processCanvasRef.current?.getContext("2d");
                 if (!ctx) return;
 
-                // Clear and resize
                 ctx.clearRect(0, 0, 32, 32);
-
-                // Draw image resized to 32x32
-                // Ensure better quality scaling if needed, but pixelated is fine for this
                 ctx.drawImage(img, 0, 0, 32, 32);
 
-                // Read pixels
                 const imageData = ctx.getImageData(0, 0, 32, 32);
                 const data = imageData.data;
                 const newGrid: string[][] = [];
@@ -60,9 +44,8 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                         const a = data[i + 3];
 
                         if (a < 128) {
-                            row.push("#000000"); // Treat transparent as black/background
+                            row.push("#000000");
                         } else {
-                            // Convert rgb to hex
                             const toHex = (c: number) => {
                                 const hex = c.toString(16);
                                 return hex.length === 1 ? "0" + hex : hex;
@@ -93,10 +76,8 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
         newGrid[rowIndex] = [...newGrid[rowIndex]];
 
         if (tool === "eraser") {
-            newGrid[rowIndex][colIndex] = "#000000"; // Erase to black
+            newGrid[rowIndex][colIndex] = "#000000";
         } else {
-            // Basic pencil - maybe default white or just keeping eraser focused for now
-            // User asked for "silmek" (erase) mostly. Let's make pencil White for restoration
             newGrid[rowIndex][colIndex] = "#FFFFFF";
         }
         setGrid(newGrid);
@@ -114,10 +95,9 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
     const handleUpload = async () => {
         if (!grid.length) return;
         setUploading(true);
-        setStatus("Cihaza gönderiliyor...");
+        setStatus(t("sendingToDevice"));
 
         try {
-            // Convert grid back to image
             const ctx = canvasRef.current?.getContext("2d");
             if (!ctx) return;
 
@@ -138,15 +118,14 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
             const result = await api.upload(file);
 
             if (result.status === "uploaded") {
-                setStatus("✅ Başarıyla gönderildi!");
-                // Clear status after 3 seconds
+                setStatus(t("sentSuccess"));
                 setTimeout(() => setStatus(null), 3000);
             } else {
                 throw new Error("Upload failed");
             }
         } catch (err) {
             console.error(err);
-            setStatus("❌ Gönderim hatası!");
+            setStatus(t("sendError"));
         } finally {
             setUploading(false);
         }
@@ -160,7 +139,6 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
 
     return (
         <div className={`flex flex-col gap-6 ${!isConnected ? "opacity-50 pointer-events-none" : ""}`}>
-            {/* Helper Canvases - Using absolute/opacity instead of hidden to ensure context availability */}
             <canvas
                 ref={processCanvasRef}
                 width={32}
@@ -176,7 +154,6 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                 style={{ top: -9999, left: -9999 }}
             />
 
-            {/* Input Area */}
             {!selectedFile ? (
                 <div
                     className="border-2 border-dashed border-slate-700 bg-slate-800/50 rounded-xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-slate-800 transition-colors w-full"
@@ -193,15 +170,14 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                         <Upload className="w-8 h-8 text-blue-400" />
                     </div>
                     <div className="text-center">
-                        <p className="text-white font-bold text-lg">Görsel Yüklemek İçin Tıklayın</p>
-                        <p className="text-slate-400 text-sm mt-1">PNG, JPG, GIF (Otomatik 32x32'ye küçültülür)</p>
+                        <p className="text-white font-bold text-lg">{t("clickToUpload")}</p>
+                        <p className="text-slate-400 text-sm mt-1">{t("autoResize")}</p>
                     </div>
                 </div>
             ) : (
                 <div className="flex flex-col items-center animate-in fade-in zoom-in duration-300">
-                    {/* Toolbar */}
                     <div className="flex items-center gap-4 mb-4 bg-slate-800 p-2 rounded-lg">
-                        <span className="text-xs font-bold text-slate-400 px-2">Düzenleme:</span>
+                        <span className="text-xs font-bold text-slate-400 px-2">{t("editing")}</span>
                         <button
                             onClick={() => setTool("eraser")}
                             className={clsx(
@@ -210,7 +186,7 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                             )}
                         >
                             <Eraser className="w-4 h-4" />
-                            Silgi
+                            {t("eraser")}
                         </button>
                         <button
                             onClick={() => setTool("pencil")}
@@ -220,32 +196,30 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                             )}
                         >
                             <Pencil className="w-4 h-4" />
-                            Beyaz Kalem
+                            {t("whitePencil")}
                         </button>
                         <div className="w-px h-6 bg-slate-700 mx-2" />
                         <button
                             onClick={reset}
                             className="text-slate-400 hover:text-white p-1"
-                            title="İptal / Yeni Resim"
+                            title={t("cancelNewImage")}
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
                     </div>
 
-                    {/* Interactive Editor Grid */}
                     <div
                         className="relative bg-slate-900 border border-slate-700 shadow-2xl p-4 rounded-xl"
                         onPointerLeave={() => setIsDrawing(false)}
                         onPointerUp={() => setIsDrawing(false)}
                     >
-                        {/* Only render grid if we have data */}
                         {grid.length > 0 && (
                             <div
                                 style={{
                                     display: "grid",
                                     gridTemplateColumns: "repeat(32, 1fr)",
-                                    gap: "0px", // Removed gap for cleaner look
-                                    width: "320px", // Fixed width for better consistency
+                                    gap: "0px",
+                                    width: "320px",
                                     height: "320px"
                                 }}
                                 className="bg-slate-950 border border-slate-800 cursor-crosshair touch-none select-none mx-auto"
@@ -259,27 +233,25 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                                                 e.preventDefault();
                                                 handlePointerDown(r, c);
                                             }}
-                                            onPointerEnter={(e) => handlePointerEnter(r, c)}
+                                            onPointerEnter={() => handlePointerEnter(r, c)}
                                         />
                                     ))
                                 ))}
                             </div>
                         )}
 
-                        {/* Empty State / Loading State if grid is empty but file is selected */}
                         {grid.length === 0 && (
                             <div className="w-[320px] h-[320px] flex items-center justify-center text-slate-500">
                                 <div className="animate-spin w-8 h-8 border-2 border-current border-t-transparent rounded-full mb-2"></div>
-                                <span className="ml-2">İşleniyor...</span>
+                                <span className="ml-2">{t("processing")}</span>
                             </div>
                         )}
                     </div>
 
                     <p className="text-slate-500 text-xs mt-3 mb-6">
-                        İstenmeyen pikselleri silmek için üzerine tıklayın veya sürükleyin.
+                        {t("clickToDrag")}
                     </p>
 
-                    {/* Action Buttons */}
                     <div className="w-full max-w-sm flex flex-col gap-3">
                         <button
                             onClick={handleUpload}
@@ -290,13 +262,13 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
                             )}
                         >
                             <Send className="w-5 h-5" />
-                            {uploading ? "Cihaza Gönderiliyor..." : "Ekrana Gönder"}
+                            {uploading ? t("sendingToDeviceBtn") : t("sendToScreen")}
                         </button>
 
                         {status && (
                             <div className={clsx(
                                 "p-3 rounded-lg text-center text-sm font-bold animate-in fade-in slide-in-from-top-2 border",
-                                status.includes("hatası")
+                                status.includes("❌")
                                     ? "bg-red-500/10 text-red-400 border-red-500/20"
                                     : "bg-green-500/10 text-green-400 border-green-500/20"
                             )}>
@@ -309,3 +281,4 @@ export default function ImageController({ isConnected }: { isConnected: boolean 
         </div>
     );
 }
+

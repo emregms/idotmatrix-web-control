@@ -1,22 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import PixelEditor from "./PixelEditor";
 import EmojiToPixel from "./EmojiPicker";
 import { PenTool, Smile } from "lucide-react";
 import { clsx } from "clsx";
 
 export default function CreativeStudio({ isConnected }: { isConnected: boolean }) {
+    const { t } = useI18n();
     const [mode, setMode] = useState<"draw" | "emoji">("draw");
 
     return (
         <div className={`mt-10 ${!isConnected ? "opacity-50 pointer-events-none filter grayscale" : ""}`}>
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-black bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
-                    Yaratıcı Stüdyo
+                    {t("creativeStudioTitle")}
                 </h2>
 
-                {/* Toggle */}
                 <div className="bg-slate-800 p-1 rounded-lg flex gap-1">
                     <button
                         onClick={() => setMode("draw")}
@@ -26,7 +27,7 @@ export default function CreativeStudio({ isConnected }: { isConnected: boolean }
                         )}
                     >
                         <PenTool className="w-4 h-4" />
-                        Çizim
+                        {t("draw")}
                     </button>
                     <button
                         onClick={() => setMode("emoji")}
@@ -36,7 +37,7 @@ export default function CreativeStudio({ isConnected }: { isConnected: boolean }
                         )}
                     >
                         <Smile className="w-4 h-4" />
-                        Emoji
+                        {t("emoji")}
                     </button>
                 </div>
             </div>
@@ -51,3 +52,4 @@ export default function CreativeStudio({ isConnected }: { isConnected: boolean }
         </div>
     );
 }
+

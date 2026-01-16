@@ -2,17 +2,18 @@
 
 import { useState, useRef, useEffect } from "react";
 import { api } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { Eraser, Pencil, Trash2, Upload, RefreshCw } from "lucide-react";
 import { clsx } from "clsx";
 
-// Simple color palette
 const COLORS = [
-    "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF", // Brights
-    "#FFFFFF", "#000000", "#808080", "#C0C0C0", // Grays
-    "#FFA500", "#800080", "#008000", "#800000", "#000080", "#808000", // Darks
+    "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF",
+    "#FFFFFF", "#000000", "#808080", "#C0C0C0",
+    "#FFA500", "#800080", "#008000", "#800000", "#000080", "#808000",
 ];
 
 export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
+    const { t } = useI18n();
     const [grid, setGrid] = useState<string[][]>(Array(32).fill(Array(32).fill("#000000")));
     const [selectedColor, setSelectedColor] = useState("#FF0000");
     const [tool, setTool] = useState<"pencil" | "eraser">("pencil");
@@ -20,7 +21,6 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
     const [loading, setLoading] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    // Initialize independent row arrays
     useEffect(() => {
         const newGrid = Array.from({ length: 32 }, () => Array(32).fill("#000000"));
         setGrid(newGrid);
@@ -28,11 +28,10 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
 
     const handlePixelClick = (rowIndex: number, colIndex: number) => {
         const currentColor = tool === "eraser" ? "#000000" : selectedColor;
-        // Optimization check
         if (grid[rowIndex][colIndex] === currentColor) return;
 
         const newGrid = [...grid];
-        newGrid[rowIndex] = [...newGrid[rowIndex]]; // Copy row
+        newGrid[rowIndex] = [...newGrid[rowIndex]];
         newGrid[rowIndex][colIndex] = currentColor;
         setGrid(newGrid);
     };
@@ -60,7 +59,6 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
             const ctx = canvasRef.current.getContext("2d");
             if (!ctx) return;
 
-            // Draw grid to canvas
             ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, 32, 32);
 
@@ -86,7 +84,6 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
 
     return (
         <div className="flex flex-col gap-6 items-center w-full">
-            {/* Tools Header */}
             <div className="flex flex-wrap items-center justify-between w-full max-w-[800px] bg-slate-800 p-4 rounded-xl shadow-lg">
                 <div className="flex gap-2">
                     <button
@@ -96,7 +93,7 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
                             tool === "pencil" ? "bg-blue-600 text-white shadow-lg shadow-blue-900/50" : "text-slate-400 hover:bg-slate-700"
                         )}
                     >
-                        <Pencil className="w-5 h-5" /> Kalem
+                        <Pencil className="w-5 h-5" /> {t("pencil")}
                     </button>
                     <button
                         onClick={() => setTool("eraser")}
@@ -105,21 +102,20 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
                             tool === "eraser" ? "bg-red-600 text-white shadow-lg shadow-red-900/50" : "text-slate-400 hover:bg-slate-700"
                         )}
                     >
-                        <Eraser className="w-5 h-5" /> Silgi
+                        <Eraser className="w-5 h-5" /> {t("eraser")}
                     </button>
                 </div>
 
                 <button
                     onClick={clearGrid}
                     className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                    title="Temizle"
+                    title={t("clear")}
                 >
                     <Trash2 className="w-5 h-5" />
                 </button>
             </div>
 
             <div className="flex flex-col xl:flex-row gap-8 items-start justify-center w-full">
-                {/* Main Grid Canvas - FIXED SIZE for better UX */}
                 <div
                     className="bg-slate-900 p-1 border border-slate-800 rounded-xl shadow-2xl overflow-hidden"
                     onPointerLeave={() => setIsDrawing(false)}
@@ -139,21 +135,17 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
                                         e.preventDefault();
                                         handlePointerDown(r, c);
                                     }}
-                                    onPointerEnter={(e) => handlePointerEnter(r, c)}
+                                    onPointerEnter={() => handlePointerEnter(r, c)}
                                 />
                             ))
                         ))}
                     </div>
-                    {/* Hidden canvas for export */}
                     <canvas ref={canvasRef} width={32} height={32} className="hidden" />
                 </div>
 
-                {/* Sidebar: Colors & Actions */}
                 <div className="flex flex-col gap-6 w-full max-w-[250px]">
-
-                    {/* Color Palette */}
                     <div className="bg-slate-800 p-4 rounded-xl shadow-lg border border-slate-700">
-                        <h3 className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">Renk Paleti</h3>
+                        <h3 className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">{t("colorPalette")}</h3>
                         <div className="grid grid-cols-4 gap-2">
                             {COLORS.map((color) => (
                                 <button
@@ -183,7 +175,6 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
                         </div>
                     </div>
 
-                    {/* Send Button */}
                     <button
                         onClick={handleSendToDevice}
                         disabled={!isConnected || loading}
@@ -195,13 +186,14 @@ export default function PixelEditor({ isConnected }: { isConnected: boolean }) {
                         )}
                     >
                         {loading ? <RefreshCw className="w-6 h-6 animate-spin" /> : <Upload className="w-6 h-6" />}
-                        {loading ? "Gönderiliyor..." : "Ekrana Yansıt"}
+                        {loading ? t("sending") : t("reflectToScreen")}
                     </button>
                     {!isConnected && (
-                        <p className="text-xs text-red-400 text-center">Cihaz bağlı değil</p>
+                        <p className="text-xs text-red-400 text-center">{t("deviceNotConnectedShort")}</p>
                     )}
                 </div>
             </div>
         </div>
     );
 }
+
